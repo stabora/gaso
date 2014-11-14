@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form name="gaso-form" class="form" action="/traducir" method="post" accept-charset="UTF-8">
+	<div class="form-group">
+		<textarea name="texto" class="form-control" rows="10"></textarea>
+	</div>
+
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary">Enviagasar</button>
+	</div>
+</form>
+{% endblock %}

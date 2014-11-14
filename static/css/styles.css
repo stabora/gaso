@@ -1,0 +1,9 @@
+.container
+{
+  margin-top: 30px;
+}
+
+.form-control-feedback {
+    top: 0;
+    right: 0px;
+}
