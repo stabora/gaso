@@ -12,6 +12,7 @@ app = Flask(__name__)
 def hello():
     return render_template('form.html')
 
+
 @app.route('/traducir', methods=['POST'])
 def traducir():
     return render_template(
