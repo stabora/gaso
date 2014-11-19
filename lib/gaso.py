@@ -32,8 +32,9 @@ TIPO_ACENTO = {
 def analizar_palabra(palabra):
     palabra_separada = dic.inserted(palabra)
 
-    # Fuerzo la separación de diptongos
-    palabra_separada = re.sub(ur'(í)([' + get_vocales_planas() + '])', r'\1-\2', palabra_separada)
+    # Fuerzo la separación de diptongos con hiatos
+    palabra_separada = re.sub(ur'([get_vocales_planas()])([íúé])', r'\1-\2', palabra_separada)
+    palabra_separada = re.sub(ur'([íú])([get_vocales_planas()])', r'\1-\2', palabra_separada)
 
     silabas = palabra_separada.split('-')
     cantidad_silabas = len(silabas) if len(silabas) < 5 else 4
@@ -43,23 +44,7 @@ def analizar_palabra(palabra):
         if re.search(ur'[' + get_vocales_acentuadas() + ']', silaba):
             silaba_acentuada = indice
 
-    if silaba_acentuada >= 4:
-        tipo_acento = 4
-    elif silaba_acentuada == 3:
-        tipo_acento = 3
-    elif cantidad_silabas == 1:
-        tipo_acento = 1
-    else:
-        if palabra[-1] in LETRAS_FINALES:
-            if silaba_acentuada == 1:
-                tipo_acento = 1
-            else:
-                tipo_acento = 2
-        else:
-            if silaba_acentuada == 2:
-                tipo_acento = 2
-            else:
-                tipo_acento = 1
+    tipo_acento = get_tipo_acento(silaba_acentuada, cantidad_silabas, palabra[-1])
 
     return tipo_acento, silabas, (
         u'Palabra: {}<br>'
@@ -74,6 +59,28 @@ def analizar_palabra(palabra):
         silaba_acentuada,
         TIPO_ACENTO[tipo_acento],
     )
+
+
+def get_tipo_acento(silaba_acentuada, cantidad_silabas, ultima_letra):
+    if silaba_acentuada >= 4:
+        tipo_acento = 4
+    elif silaba_acentuada == 3:
+        tipo_acento = 3
+    elif cantidad_silabas == 1:
+        tipo_acento = 1
+    else:
+        if ultima_letra in LETRAS_FINALES:
+            if silaba_acentuada == 1:
+                tipo_acento = 1
+            else:
+                tipo_acento = 2
+        else:
+            if silaba_acentuada == 2:
+                tipo_acento = 2
+            else:
+                tipo_acento = 1
+
+    return tipo_acento
 
 
 def traducir_palabra(palabra):
