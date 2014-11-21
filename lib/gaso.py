@@ -4,6 +4,7 @@ import re
 from pyphen import pyphen
 
 dic = pyphen.Pyphen(lang='es_AR')
+
 LETRAS_FINALES = ['n', 's', 'a', 'e', 'i', 'o', 'u', u'á', u'é', u'í', u'ó', u'ú']
 
 VOCALES_ACENTUADAS = {
@@ -27,6 +28,8 @@ TIPO_ACENTO = {
     3: u'Esdrújula',
     4: u'Sobreesdrújula',
 }
+
+DICCIONARIO_LUNFARDO = eval(open('lib/diccionario_lunfardo.json').read().decode('utf8'))
 
 
 def analizar_palabra(palabra):
@@ -61,6 +64,53 @@ def analizar_palabra(palabra):
     )
 
 
+def gasear_texto(texto):
+    return re.sub(ur'([\w' + get_vocales_acentuadas() + '])+', lambda p: gasear_palabra(p.group()), texto)
+
+
+def gasear_palabra(palabra):
+    palabra = lunfardear_palabra(palabra)
+    tipo_palabra, silabas, detalle = analizar_palabra(palabra)
+    silabas_rev = silabas[::-1]
+
+    if tipo_palabra == 1 and len(silabas) > 1:
+        silabas_rev[0] = gasear_silaba(silabas_rev[0])
+    elif tipo_palabra == 2:
+        silabas_rev[1] = gasear_silaba(silabas_rev[1])
+    elif tipo_palabra == 3:
+        silabas_rev[2] = gasear_silaba(silabas_rev[2])
+    elif tipo_palabra == 4:
+        silabas_rev[3] = gasear_silaba(silabas_rev[3])
+
+    return ''.join(silabas_rev[::-1])
+
+
+def gasear_silaba(silaba):
+    if re.search(r'[' + get_vocales_planas() + ']{2}', silaba):
+        return re.sub(r'([' + get_vocales_planas() + '])', r'\1sag\1', silaba[::-1], 1)[::-1]
+    else:
+        silaba_gaseada = re.sub(
+            r'([' + get_vocales_planas() + get_vocales_acentuadas() + '])',
+            '{}gas{}'.format(
+                ur'\1',
+                ur'\1'
+            ),
+            silaba,
+            1
+        )
+
+        return re.sub(
+            ur'([' + get_vocales_acentuadas() + '])',
+            lambda s: VOCALES_ACENTUADAS[s.group(1)],
+            silaba_gaseada,
+            1
+        )
+
+
+def lunfardear_palabra(palabra):
+    return DICCIONARIO_LUNFARDO[palabra] if palabra in DICCIONARIO_LUNFARDO else palabra
+
+
 def get_tipo_acento(silaba_acentuada, cantidad_silabas, ultima_letra):
     if silaba_acentuada >= 4:
         tipo_acento = 4
@@ -81,51 +131,6 @@ def get_tipo_acento(silaba_acentuada, cantidad_silabas, ultima_letra):
                 tipo_acento = 1
 
     return tipo_acento
-
-
-def traducir_palabra(palabra):
-    tipo_palabra, silabas, detalle = analizar_palabra(palabra)
-    silabas_rev = silabas[::-1]
-
-    if tipo_palabra == 1 and len(silabas) > 1:
-        silabas_rev[0] = gasear(silabas_rev[0])
-    elif tipo_palabra == 2:
-        silabas_rev[1] = gasear(silabas_rev[1])
-    elif tipo_palabra == 3:
-        silabas_rev[2] = gasear(silabas_rev[2])
-    elif tipo_palabra == 4:
-        silabas_rev[3] = gasear(silabas_rev[3])
-
-    return ''.join(silabas_rev[::-1])
-
-
-def traducir_texto(texto):
-    #for palabra in re.split(r'[\s.,]', texto):
-        #texto_traducido += traducir_palabra(palabra) + ' '
-
-    return re.sub(ur'([\w' + get_vocales_acentuadas() + '])+', lambda p: traducir_palabra(p.group()), texto)
-
-
-def gasear(silaba):
-    if re.search(r'[' + get_vocales_planas() + ']{2}', silaba):
-        return re.sub(r'([' + get_vocales_planas() + '])', r'\1sag\1', silaba[::-1], 1)[::-1]
-    else:
-        silaba_gaseada = re.sub(
-            r'([' + get_vocales_planas() + get_vocales_acentuadas() + '])',
-            '{}gas{}'.format(
-                ur'\1',
-                ur'\1'
-            ),
-            silaba,
-            1
-        )
-
-        return re.sub(
-            ur'([' + get_vocales_acentuadas() + '])',
-            lambda s: VOCALES_ACENTUADAS[s.group(1)],
-            silaba_gaseada,
-            1
-        )
 
 
 def get_vocales_planas():

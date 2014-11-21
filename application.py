@@ -17,7 +17,7 @@ def hello():
 def traducir():
     return render_template(
         'result.html',
-        texto_traducido=gaso.traducir_texto(request.form['texto']),
+        texto_traducido=gaso.gasear_texto(request.form['texto']),
         texto_original=request.form['texto'],
     )
 
